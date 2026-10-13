@@ -4,6 +4,12 @@
 
 ## 直接使用／預覽
 
+線上 HTML 預覽（第三方預覽器，網頁本身無外部依賴）：
+
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/lycheey1126-png/restriction-enzyme/main/index.html
+
+目前雲端環境的網絡政策阻擋此預覽器，未能驗證公開服務的開啟結果；已驗證本機瀏覽器的完整教學操作及 GitHub 上的 HTML 檔。
+
 下載 `index.html`，用 Chrome、Edge、Firefox 或 Safari 開啟，即可完整操作。所有樣式、圖示及程式均在同一檔案內，離線亦可使用。
 
 也可在專案目錄執行 `python3 -m http.server 8000`，再由同一電腦的瀏覽器開啟 `http://localhost:8000`。
