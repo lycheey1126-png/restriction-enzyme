@@ -70,6 +70,15 @@ let timer=null;
 const titles=['先認識兩段 DNA','用限制酶切割','讓黏端互補配對','用 DNA 連接酶連接'];
 function stop(){if(timer)clearTimeout(timer);timer=null;}
 function clearResult(){stop();Object.assign(state,{prediction:null,cut:false,attempt:false,ligated:false,ligaseTried:false,revealed:0});}
+function openPlasmidSvg(){
+ const point=(radius,angle)=>{const rad=angle*Math.PI/180;return `${(339+radius*Math.cos(rad)).toFixed(2)} ${(144+radius*Math.sin(rad)).toFixed(2)}`;};
+ // The outer strand protrudes at the left end; the inner strand protrudes at the right.
+ // Both edges have a staggered step, rather than a flat radial cut.
+ const body=`M${point(77,310)} A77 77 0 1 1 ${point(77,242)} L${point(66,242)} A66 66 0 0 0 ${point(66,230)} L${point(55,230)} A55 55 0 1 0 ${point(55,298)} L${point(66,298)} A66 66 0 0 1 ${point(66,310)} Z`;
+ const left=`M${point(77,218)} A77 77 0 0 1 ${point(77,242)} L${point(66,242)} A66 66 0 0 0 ${point(66,230)} L${point(55,230)} A55 55 0 0 0 ${point(55,218)} Z`;
+ const right=`M${point(77,310)} A77 77 0 0 1 ${point(77,322)} L${point(55,322)} A55 55 0 0 0 ${point(55,298)} L${point(66,298)} A66 66 0 0 1 ${point(66,310)} Z`;
+ return `<path d="${body}" fill="#29963c" stroke="#267a34" stroke-width=".8"/><path data-plasmid-end="left" d="${left}" fill="#9e8cd1" stroke="#7668a7" stroke-width="1"/><path data-plasmid-end="right" d="${right}" fill="#9e8cd1" stroke="#7668a7" stroke-width="1"/>`;
+}
 function globalSvg(){
  const cut=state.cut,joined=state.attempt&&compatible(state.dna,state.plasmid),lig=state.ligated;
  let s='<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10" fill="#29333e"/></marker></defs>';
@@ -82,7 +91,8 @@ function globalSvg(){
   if(!cut){for(let x of [52,215]){s+=line(x,105,x,162,'#8758a5',1,'stroke-dasharray="3 3"')+svgText(x,99,'✂',22,'#54318a');}s+=svgText(132,186,'兩側都有可切割的位置',13);}
   else{s+=svgText(57,110,'黏端',13,'#54318a')+svgText(213,169,'黏端',13,'#54318a')+line(57,113,66,122,'#54318a',1)+line(211,157,207,148,'#54318a',1);s+=svgText(132,196,'目標 DNA 片段',15);}
  }
- if(cut){s+=`<path d="M381 94 A66 66 0 1 1 297 94" fill="none" stroke="#29963c" stroke-width="22"/><path d="M381 94 A66 66 0 0 1 393 106" fill="none" stroke="#9e8cd1" stroke-width="22"/><path d="M285 106 A66 66 0 0 1 297 94" fill="none" stroke="#9e8cd1" stroke-width="22"/>`;}
+ if(cut&&!joined){s+=openPlasmidSvg();}
+ else if(cut){s+=`<path d="M381 94 A66 66 0 1 1 297 94" fill="none" stroke="#29963c" stroke-width="22"/><path d="M381 94 A66 66 0 0 1 393 106" fill="none" stroke="#9e8cd1" stroke-width="22"/><path d="M285 106 A66 66 0 0 1 297 94" fill="none" stroke="#9e8cd1" stroke-width="22"/>`;}
  else{s+=`<circle cx="${ringX}" cy="${ringY}" r="${r}" fill="none" stroke="#29963c" stroke-width="22"/><path d="M306 87 A66 66 0 0 1 372 87" fill="none" stroke="#9e8cd1" stroke-width="22"/>`+svgText(339,84,'✂',22,'#54318a');}
  s+='<path d="M285 182 A66 66 0 0 1 275 160" fill="none" stroke="#62c3e8" stroke-width="22"/>';
  if(joined){
@@ -92,7 +102,7 @@ function globalSvg(){
  }
  if(cut){for(let [x,n] of [[294,1],[384,2]]){s+=`<circle cx="${x}" cy="67" r="11" fill="#f0edf8" stroke="#7768b6"/>`+svgText(x,72,n,13,'#54318a')+line(x,79,x<339?297:381,92,'#7768b6',1);}s+=svgText(339,234,lig?'目標基因已插入，形成重組質粒':joined?'黏端已配對，骨架還有切口':'放大看兩個末端：①、②',14);}
  else{s+=svgText(339,234,'環狀 DNA，可作載體',14);}
- return `<div class="global"><svg id="global-svg" viewBox="0 0 470 255" role="img" aria-label="${lig?'紅色目標基因已插入綠色環狀質粒，形成重組質粒':joined?'目標片段的兩端已與切開的質粒配對，但骨架仍有切口':cut?'紅色目標 DNA 片段的兩端有黏端；綠色質粒切開後有兩個末端':'紅色目標基因在 DNA 中；右方綠色環狀 DNA 是質粒'}">${s}</svg></div>${state.step===2&&!state.attempt?'<p class="drag-hint">拖動紅色 DNA 片段至質粒，或按「嘗試配對」。</p>':''}`;
+ return `<div class="global"><svg id="global-svg" viewBox="0 0 470 255" role="img" aria-label="${lig?'紅色目標基因已插入綠色環狀質粒，形成重組質粒':joined?'目標片段的兩端已與切開的質粒配對，但骨架仍有切口':cut?'紅色目標 DNA 片段的兩端有黏端；綠色質粒切開後有兩個帶階梯狀缺口的黏端':'紅色目標基因在 DNA 中；右方綠色環狀 DNA 是質粒'}">${s}</svg></div>${state.step===2&&!state.attempt?'<p class="drag-hint">拖動紅色 DNA 片段至質粒，或按「嘗試配對」。</p>':''}`;
 }
 function sequenceCards(cut){return `<div class="dna-grid"><div class="seq-card"><h3>DNA 的兩個切割位置 · ${label(state.dna)}</h3>${cutSvg(state.dna,cut)}</div><div class="seq-card"><h3>質粒的切割位置 · ${label(state.plasmid)}</h3>${cutSvg(state.plasmid,cut)}</div></div>`;}
 const directionHelp=()=>`<details class="small-detail"><summary>圖中的 5′、3′ 是甚麼？</summary><p>它們標示 DNA 鏈的兩端。兩條鏈的方向相反；你只需按上下位置，看 A 是否對着 T、C 是否對着 G。</p></details>`;
