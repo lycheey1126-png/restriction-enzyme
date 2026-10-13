@@ -1,0 +1,8 @@
+{
+  "name": "restriction-enzyme-learning-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "香港 DSE 生物科限制酶與重組質粒互動教學",
+  "scripts": {"test": "node tests/verify.cjs", "start": "python3 -m http.server 8000 --bind 0.0.0.0"},
+  "devDependencies": {"@playwright/test": "1.61.1"}
+}
